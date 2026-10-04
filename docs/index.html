@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PFO 2 - Sistema de Gestión de Tareas con API</title>
+<style>
+  :root { --navy:#1f3a5f; --accent:#2e5c8a; --bg:#f7f8fa; --yellow:#ffce00; }
+  * { box-sizing: border-box; }
+  body { font-family: Arial, sans-serif; margin:0; background:var(--bg); color:#222; line-height:1.5; }
+  header { background:var(--navy); color:#fff; padding:40px 20px; text-align:center; }
+  header h1 { margin:0 0 8px; }
+  header p { margin:0; opacity:.9; }
+  main { max-width:860px; margin:0 auto; padding:30px 20px; }
+  section { background:#fff; border:1px solid #e3e3e3; border-radius:8px; padding:24px; margin-bottom:22px; }
+  h2 { color:var(--navy); margin-top:0; border-bottom:2px solid var(--yellow); padding-bottom:8px; }
+  h3 { color:var(--accent); margin-bottom:6px; }
+  code, pre { background:#f0f2f5; border-radius:4px; }
+  pre { padding:12px; overflow-x:auto; font-size:13px; }
+  code { padding:2px 5px; }
+  .badge { display:inline-block; background:var(--yellow); color:#222; border-radius:4px; padding:2px 8px; font-size:13px; font-weight:bold; }
+  a { color:var(--accent); }
+  .aviso { background:#fff6da; border:1px solid var(--yellow); border-radius:6px; padding:14px 16px; }
+  footer { text-align:center; color:#777; font-size:13px; padding:20px; }
+  .prueba { margin-bottom:28px; }
+  .prueba img { max-width:100%; border:1px solid #ddd; border-radius:6px; display:block; margin:10px 0; }
+  .resultado { background:#eef6ee; border-left:4px solid #3a8a3a; padding:8px 12px; border-radius:4px; font-size:14px; }
+  .resumen-tabla { width:100%; border-collapse:collapse; font-size:14px; }
+  .resumen-tabla th, .resumen-tabla td { border:1px solid #ddd; padding:8px 10px; text-align:left; }
+  .resumen-tabla th { background:var(--navy); color:#fff; }
+  .toc { font-size:14px; }
+  .toc a { display:inline-block; margin-right:14px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Sistema de Gestión de Tareas con API</h1>
+  <p>PFO 2 - API REST con Flask, autenticación con contraseñas hasheadas y persistencia en SQLite</p>
+</header>
+<main>
+
+  <section class="aviso">
+    <strong>Nota sobre esta página:</strong> GitHub Pages solo puede alojar contenido estático
+    (HTML, CSS, JS) y no puede ejecutar un servidor Flask en Python. Por eso esta página reúne
+    toda la documentación del proyecto: qué hace, cómo ejecutarlo, las pruebas realizadas y las
+    respuestas conceptuales. Para probar la API en funcionamiento hay que clonar el
+    <a href="https://github.com/AdrianoJere/pfo2-api-flask-sqlite">repositorio</a> y ejecutarla
+    localmente.
+  </section>
+
+  <section class="toc">
+    <a href="#descripcion">Descripción</a>
+    <a href="#ejecucion">Cómo ejecutarlo</a>
+    <a href="#pruebas">Pruebas realizadas</a>
+    <a href="#conceptuales">Respuestas conceptuales</a>
+  </section>
+
+  <section id="descripcion">
+    <h2>¿Qué hace el proyecto?</h2>
+    <p>Un servidor API REST hecho con <strong>Flask</strong> que permite registrar usuarios con
+    contraseñas hasheadas, iniciar sesión, y acceder a un endpoint de bienvenida al sistema de
+    tareas. Los datos se guardan en una base de datos <strong>SQLite</strong>. Incluye además un
+    cliente de consola que interactúa con la API.</p>
+    <p><span class="badge">POST</span> <code>/registro</code> - crea un usuario nuevo</p>
+    <p><span class="badge">POST</span> <code>/login</code> - verifica las credenciales</p>
+    <p><span class="badge">GET</span> <code>/tareas</code> - HTML de bienvenida al sistema</p>
+  </section>
+
+  <section id="ejecucion">
+    <h2>Cómo ejecutarlo</h2>
+    <pre>pip install -r requirements.txt
+python servidor.py        # Terminal 1
+python cliente.py         # Terminal 2</pre>
+    <p>El servidor queda escuchando en <code>http://localhost:5000</code>. El cliente muestra un
+    menú con las opciones registrarse, iniciar sesión, ver tareas y salir.</p>
+  </section>
+
+  <section id="pruebas">
+    <h2>Pruebas realizadas</h2>
+
+    <table class="resumen-tabla">
+      <tr><th>N°</th><th>Prueba</th><th>Resultado</th></tr>
+      <tr><td>1</td><td>Inicio del servidor y del cliente</td><td>Correcto</td></tr>
+      <tr><td>2</td><td>Registro con un usuario que ya existe</td><td>Correcto (error 409 controlado)</td></tr>
+      <tr><td>3</td><td>Login con contraseña incorrecta</td><td>Correcto (error 401 controlado)</td></tr>
+      <tr><td>4</td><td>Registro y login exitosos</td><td>Correcto</td></tr>
+      <tr><td>5</td><td>Acceso a /tareas tras iniciar sesión</td><td>Correcto</td></tr>
+      <tr><td>6</td><td>Verificación del hash en la base de datos</td><td>Correcto</td></tr>
+      <tr><td>7</td><td>Intento de ver tareas sin haber iniciado sesión</td><td>Correcto</td></tr>
+    </table>
+
+    <div class="prueba">
+      <h3>1. Inicio del servidor y del cliente</h3>
+      <p>Se inicia el servidor Flask en <code>localhost:5000</code> en una terminal, y el cliente
+      de consola en otra, mostrando el menú de opciones.</p>
+      <img src="capturas/01_inicio.png" alt="Servidor y cliente iniciados">
+    </div>
+
+    <div class="prueba">
+      <h3>2. Registro con un usuario que ya existe</h3>
+      <p>Se intenta registrar un usuario (<code>acaloni</code>) que ya estaba creado de una prueba
+      anterior. El servidor responde con el error controlado "El usuario ya existe" (código HTTP 409),
+      sin romperse.</p>
+      <img src="capturas/02_registro_duplicado.png" alt="Error de registro: usuario ya existe">
+      <p class="resultado">Resultado: el servidor detecta el usuario duplicado y lo informa con un
+      mensaje claro, en vez de guardar un registro repetido.</p>
+    </div>
+
+    <div class="prueba">
+      <h3>3. Login con contraseña incorrecta</h3>
+      <p>Con el usuario <code>acaloni</code> ya registrado, se intenta iniciar sesión con una
+      contraseña distinta a la original.</p>
+      <img src="capturas/03_login_incorrecto.png" alt="Login con contraseña incorrecta">
+      <p class="resultado">Resultado: el servidor responde "Usuario o contraseña incorrectos"
+      (código HTTP 401) y no otorga acceso a /tareas.</p>
+    </div>
+
+    <div class="prueba">
+      <h3>4. Registro y login exitosos</h3>
+      <p>Se registra un usuario nuevo (<code>jcaloni</code>) y se inicia sesión con esas mismas
+      credenciales.</p>
+      <img src="capturas/04_registro_login_ok.png" alt="Registro y login exitosos">
+      <p class="resultado">Resultado: "Usuario 'jcaloni' registrado correctamente" y luego
+      "Bienvenido/a jcaloni. Ya podés acceder a /tareas".</p>
+    </div>
+
+    <div class="prueba">
+      <h3>5. Acceso a /tareas tras iniciar sesión</h3>
+      <p>Ya logueado como <code>jcaloni</code>, se elige la opción "Ver tareas" en el cliente.</p>
+      <img src="capturas/05_tareas_ok.png" alt="Acceso a /tareas tras login">
+      <p class="resultado">Resultado: se recibe el HTML de bienvenida al sistema de gestión de
+      tareas. En la terminal del servidor se ve el log <code>GET /tareas HTTP/1.1" 200</code>.</p>
+    </div>
+
+    <div class="prueba">
+      <h3>6. Verificación del hash en la base de datos</h3>
+      <p>Para comprobar que la contraseña nunca se guarda en texto plano, se consultó directamente
+      la tabla <code>usuarios</code> de <code>usuarios.db</code>:</p>
+      <img src="capturas/06_hash_db.png" alt="Consulta a la tabla usuarios mostrando los hashes">
+      <p class="resultado">Resultado: los dos usuarios registrados (<code>acaloni</code> y
+      <code>jcaloni</code>) tienen cada uno un hash <code>scrypt</code> distinto e irreversible en
+      <code>contrasena_hash</code>, nunca la contraseña en texto plano.</p>
+    </div>
+
+    <div class="prueba">
+      <h3>7. Intento de ver tareas sin haber iniciado sesión</h3>
+      <p>Al reiniciar el cliente y elegir directamente la opción "Ver tareas" sin pasar antes por
+      el login, el cliente no deja continuar.</p>
+      <img src="capturas/07_tareas_sin_login.png" alt="Intento de ver tareas sin iniciar sesión">
+      <p class="resultado">Resultado: el cliente responde "Primero tenés que iniciar sesión
+      (opción 2)" y no llega a consultar /tareas.</p>
+    </div>
+
+    <div class="prueba">
+      <h3>Cierre del cliente</h3>
+      <p>Al elegir la opción "Salir", el cliente termina de forma ordenada y devuelve el control a
+      la terminal.</p>
+      <img src="capturas/08_cierre_cliente.png" alt="Cierre del cliente">
+    </div>
+  </section>
+
+  <section id="conceptuales">
+    <h2>Respuestas conceptuales</h2>
+
+    <h3>¿Por qué hashear contraseñas?</h3>
+    <p>Porque si la base de datos se filtra o alguien accede a ella sin autorización, una
+    contraseña en texto plano queda expuesta directamente. Un hash es el resultado de una función
+    que transforma la contraseña en una cadena que no se puede revertir a la contraseña original.
+    Al guardar el hash en vez del texto plano, aunque alguien acceda a la base de datos no puede
+    leer las contraseñas reales, y para iniciar sesión alcanza con volver a hashear lo que escribe
+    el usuario y compararlo con el hash guardado (<code>check_password_hash</code>), sin necesidad
+    de desencriptar nada.</p>
+
+    <h3>Ventajas de usar SQLite en este proyecto</h3>
+    <p>SQLite no necesita un proceso de servidor aparte: la base de datos es un solo archivo
+    (<code>usuarios.db</code>) que se crea y se lee desde el propio código Python con el módulo
+    <code>sqlite3</code>, que ya viene incluido con el lenguaje. Para un proyecto chico como este,
+    eso evita instalar y configurar un motor de base de datos adicional (como MySQL o PostgreSQL),
+    simplifica las pruebas locales (el archivo se puede borrar y se regenera solo) y alcanza de
+    sobra en rendimiento para la cantidad de usuarios que maneja un trabajo práctico.</p>
+  </section>
+
+</main>
+<footer>PFO 2 - Programación sobre redes - <a href="https://github.com/AdrianoJere/pfo2-api-flask-sqlite">Ver repositorio</a></footer>
+</body>
+</html>
